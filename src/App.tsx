@@ -1,44 +1,71 @@
-import { useState } from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import { useEffect, useState } from "react";
+import "./global.css";
+import {
+	AppContainer,
+	AppHeader,
+	Button,
+	UserAvatar,
+} from "./Styled/Components";
+import { fetchData, fetchNewUserData } from "./API/fetchUserData";
+
+interface UserName {
+	first: string;
+	last: string;
+	title: string;
+}
+
+interface UserPicture {
+	thumbnail: string;
+	medium: string;
+	large: string;
+}
+interface UserData {
+	name: UserName;
+	picture: UserPicture;
+}
 
 function App() {
 	const [count, setCount] = useState(0);
+	const [apiData, setApiData] = useState<any>([]);
+	const [fetchPageNumber, setFetchPageNumber] = useState(1);
+
+	const getFullUsername = (userData: UserData) => {
+		const {
+			name: { first, last },
+		} = userData;
+		return `${first} ${last}`;
+	};
+
+	useEffect(() => {
+		fetchData().then((data) => setApiData(data));
+	}, []);
 
 	return (
-		<div className="App">
-			<header className="App-header">
-				<img src={logo} className="App-logo" alt="logo" />
-				<p>Hello Vite + React!</p>
-				<p>
-					<button type="button" onClick={() => setCount(count + 1)}>
-						count is: {count}
-					</button>
-				</p>
-				<p>
-					Edit <code>App.tsx</code> and save to test HMR updates.
-				</p>
-				<p>
-					<a
-						className="App-link"
-						href="https://reactjs.org"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Learn React
-					</a>
-					{" | "}
-					<a
-						className="App-link"
-						href="https://vitejs.dev/guide/features.html"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Vite Docs
-					</a>
-				</p>
-			</header>
-		</div>
+		<AppContainer>
+			<AppHeader>
+				<p>{count}</p>
+				<Button type="button" onClick={() => setCount(count + 1)}>
+					Increment
+				</Button>
+				{apiData.map((userData: UserData, index: number) => {
+					return (
+						<div key={`Avatar_${index}`} className="userData__avatar">
+							<UserAvatar src={userData.picture.large} />
+							<p>{getFullUsername(userData)}</p>
+						</div>
+					);
+				})}
+				<Button
+					type="button"
+					onClick={async () => {
+						setApiData(await fetchNewUserData(fetchPageNumber, apiData));
+						setFetchPageNumber(fetchPageNumber + 1);
+					}}
+				>
+					Load more...
+				</Button>
+			</AppHeader>
+		</AppContainer>
 	);
 }
 
