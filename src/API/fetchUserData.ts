@@ -7,7 +7,9 @@ export const fetchData = async (pageNumber: number = 1) => {
 	})
 		.then((data) => data.json())
 		.then((data) => data.results)
-		.catch((err) => console.log(err));
+		.catch((err) => {
+			throw new Error(err);
+		});
 
 	return res;
 };
